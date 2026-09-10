@@ -59,7 +59,10 @@ const OAuth = (() => {
   }
 
   function getSettings() {
-    return readJson(SETTINGS_KEY) || {};
+    const stored = readJson(SETTINGS_KEY) || {};
+    const fallback = (globalThis.PUSH_OSC_CONFIG && globalThis.PUSH_OSC_CONFIG.clientId) || '';
+    // A client ID saved in Settings wins; otherwise use the bundled default.
+    return { ...stored, clientId: stored.clientId || fallback };
   }
 
   function saveSettings(settings) {

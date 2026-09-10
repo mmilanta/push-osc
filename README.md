@@ -27,22 +27,30 @@ step. It is hosted on GitHub Pages:
 - Creates a changeset, uploads the diff and closes the changeset
 - Re-verifies everything against the live server right before uploading
 
-## Setup (one-time, per user)
+## Authentication
 
-push-osc authenticates directly with OpenStreetMap using OAuth 2.0. Each user
-registers their own (free) OAuth application — no secret is required because we
-use PKCE:
+push-osc authenticates directly with OpenStreetMap using OAuth 2.0 with PKCE.
+A public **client ID is bundled** (see `js/config.js`), so **users don't need to
+configure anything** — just click *Log in with OpenStreetMap*, authorize the
+app, and your edits are applied under your own account.
 
-1. Open <https://www.openstreetmap.org/oauth2/applications/new>
-2. **Name**: anything, e.g. `push-osc`
-3. **Redirect URI**: the URL of the app, e.g. `https://mmilanta.github.io/push-osc/`
-   (click *Settings* in the app to see the exact value to paste)
-4. Leave **“Confidential application”** *unchecked*
-5. **Scopes**: tick `read_prefs` (user identity) and `write_api` (map edits)
-6. Copy the generated **Client ID** into *Settings* inside push-osc
+One OAuth application serves **all** users: the client ID identifies the app,
+not the person, and each user gets their own access token for their own OSM
+account. Because it's a public PKCE client there is **no client secret**, so
+publishing the ID with the static site is safe (the same model used by iD,
+JOSM and OSMCha).
 
-The Client ID is stored in your browser's `localStorage`; the access token is
-kept there too until you log out.
+The app owner registers/manages it once at
+<https://www.openstreetmap.org/oauth2/applications>:
+
+1. **Redirect URI**: exactly `https://mmilanta.github.io/push-osc/`
+2. Leave **“Confidential application”** *unchecked* (PKCE, no secret)
+3. **Scopes**: tick `read_prefs` (user identity) and `write_api` (map edits)
+4. Put the generated Client ID in `js/config.js`
+
+Users can still override the client ID from the in-app *Settings* dialog; their
+choice is stored in `localStorage`, alongside the access token (kept until they
+log out).
 
 ## Privacy / safety
 
@@ -63,7 +71,8 @@ python3 -m http.server 8000
 ```
 
 OAuth redirect URIs must use `https`, except for `http://127.0.0.1`, so register
-`http://127.0.0.1:8000/` as an additional Redirect URI if you want to log in
+`http://127.0.0.1:8000/` as an additional Redirect URI (and temporarily use your
+local client ID in Settings) if you want to log in
 locally.
 
 ## Deploying
@@ -89,6 +98,7 @@ blocked cannot be uploaded until the file is regenerated from fresh data.
 ```
 index.html               single page app
 styles.css               styles
+js/config.js             bundled public OAuth client ID
 js/osc.js                .osc parser + osmChange serializer
 js/osm.js                OpenStreetMap API 0.6 client
 js/oauth.js              OAuth 2.0 Authorization Code + PKCE
