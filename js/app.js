@@ -504,12 +504,15 @@ const App = (() => {
       return;
     }
 
-    const osmChangeXml = OSC.serializeOsmChange(state.changes, 'push-osc');
+    const osmChangeChanges = state.changes;
     let changesetId = null;
     try {
       setStatus('Creating changeset…', 'info');
       changesetId = await OSM.createChangeset(comment, token.access_token);
 
+      // The id must be stamped onto every element of the diff, and it can only
+      // be known after the changeset exists.
+      const osmChangeXml = OSC.serializeOsmChange(osmChangeChanges, 'push-osc', changesetId);
       setStatus(`Uploading ${state.changes.length} change(s) to changeset ${changesetId}…`, 'info');
       await OSM.uploadDiff(changesetId, osmChangeXml, token.access_token);
       await OSM.closeChangeset(changesetId, token.access_token);

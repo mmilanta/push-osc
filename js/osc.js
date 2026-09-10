@@ -107,9 +107,14 @@ const OSC = (() => {
     return { generator, changes };
   }
 
-  function serializeElement(c) {
+  function serializeElement(c, changesetId) {
     const attrs = [`id="${c.id}"`];
     if (!Number.isNaN(c.version)) attrs.push(`version="${c.version}"`);
+    // The OSM API requires the changeset id on every element in an upload diff
+    // (it must match the changeset in the upload URL).
+    if (changesetId !== undefined && changesetId !== null && changesetId !== '') {
+      attrs.push(`changeset="${escapeXml(String(changesetId))}"`);
+    }
     if (c.type === 'node') {
       if (c.lat !== undefined) attrs.push(`lat="${c.lat}"`);
       if (c.lon !== undefined) attrs.push(`lon="${c.lon}"`);
@@ -135,14 +140,15 @@ const OSC = (() => {
   /**
    * Build the osmChange document used by POST /changeset/{id}/upload.
    * Elements without a version get no version attribute (creates).
+   * The changeset id is stamped onto every element, as the API requires.
    */
-  function serializeOsmChange(changes, generator = 'push-osc') {
+  function serializeOsmChange(changes, generator = 'push-osc', changesetId) {
     const lines = [`<osmChange version="0.6" generator="${escapeXml(generator)}">`];
     for (const action of ['create', 'modify', 'delete']) {
       const group = changes.filter((c) => c.action === action);
       if (!group.length) continue;
       lines.push(`  <${action}>`);
-      for (const c of group) lines.push(serializeElement(c));
+      for (const c of group) lines.push(serializeElement(c, changesetId));
       lines.push(`  </${action}>`);
     }
     lines.push('</osmChange>');
