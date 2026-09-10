@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>push-osc — review &amp; upload OSM changes</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%2322aa55'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo">⬆</span>
+      <div>
+        <h1>push-osc</h1>
+        <p class="subtitle">Drag &amp; drop OSM change (<code>.osc</code>) files, review them against live OpenStreetMap data, then upload.</p>
+      </div>
+    </div>
+    <div class="auth-area">
+      <button id="settingsBtn" class="btn btn-ghost" title="OAuth settings">Settings</button>
+      <button id="loginBtn" class="btn btn-primary">Log in with OpenStreetMap</button>
+      <button id="logoutBtn" class="btn btn-ghost" hidden>Log out</button>
+      <span id="userInfo" class="user-info"></span>
+    </div>
+  </header>
+
+  <main>
+    <section id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drop OSC files here">
+      <div class="dz-inner">
+        <div class="dz-icon">⬆</div>
+        <p class="dz-title">Drop <code>.osc</code> file(s) here</p>
+        <p class="dz-sub">or click to browse — you can add several files at once</p>
+      </div>
+      <input type="file" id="fileInput" accept=".osc,.osm,.xml" multiple hidden>
+    </section>
+
+    <div id="status" class="status" role="status"></div>
+
+    <section id="summary" class="panel" hidden>
+      <div class="summary-line">
+        <span id="summaryCounts"></span>
+        <span id="summaryFiles" class="muted"></span>
+        <button id="clearBtn" class="btn btn-ghost btn-sm">Clear</button>
+      </div>
+    </section>
+
+    <div id="issuesBanner" class="banner banner-error" hidden></div>
+
+    <section id="mapWrap" class="panel map-panel" hidden>
+      <h2>Where the changes are</h2>
+      <div id="map"></div>
+    </section>
+
+    <section id="review" class="panel" hidden>
+      <h2>Review changes</h2>
+      <p class="muted">Each change is checked against live OSM data. Conflicts block upload.</p>
+
+      <div class="commit-row">
+        <label for="comment">Commit message (changeset comment)</label>
+        <input id="comment" type="text" placeholder="e.g. Add benches along the river path" autocomplete="off">
+      </div>
+
+      <div id="changes"></div>
+    </section>
+
+    <section id="uploadRow" class="panel upload-row" hidden>
+      <button id="uploadBtn" class="btn btn-primary btn-lg" disabled>Upload to OpenStreetMap</button>
+      <p id="uploadHint" class="muted"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Edits are applied under your OpenStreetMap account. Be nice to the map. ⚠ test responsibly on the <a href="https://master.apis.dev.openstreetmap.org" target="_blank" rel="noopener">dev server</a> first.</p>
+  </footer>
+
+  <dialog id="settingsDialog" class="settings">
+    <div class="settings-head">
+      <h2>OSM OAuth 2 settings</h2>
+      <button id="settingsClose" class="btn btn-ghost btn-sm" aria-label="Close">✕</button>
+    </div>
+    <p>push-osc uses OSM's <strong>OAuth 2.0</strong> with PKCE (no client secret needed). Register an application once:</p>
+    <ol>
+      <li>Open <a href="https://www.openstreetmap.org/oauth2/applications/new" target="_blank" rel="noopener">openstreetmap.org/oauth2/applications/new</a></li>
+      <li><strong>Name</strong>: push-osc (anything works)</li>
+      <li><strong>Redirect URI</strong>: <code id="redirectUri" class="ru"></code></li>
+      <li>Leave <strong>“Confidential application”</strong> <em>unchecked</em></li>
+      <li><strong>Scopes</strong>: tick <code>read_prefs</code> and <code>write_api</code></li>
+      <li>Copy the generated <strong>Client ID</strong> below</li>
+    </ol>
+    <label for="clientId" class="field">
+      <span>Client ID</span>
+      <input id="clientId" type="text" placeholder="e.g. abc123…-client-id" autocomplete="off">
+    </label>
+    <div class="settings-actions">
+      <button id="settingsSave" class="btn btn-primary">Save</button>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/osc.js"></script>
+  <script src="js/oauth.js"></script>
+  <script src="js/osm.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
